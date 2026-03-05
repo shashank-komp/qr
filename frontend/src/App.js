@@ -1,0 +1,20 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import DirectUpload from "./pages/DirectUpload";
+import QRUpload from "./pages/QRUpload";
+import PhoneUpload from "./pages/PhoneUpload";
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/direct-upload" element={<DirectUpload />} />
+        <Route path="/qr-upload" element={<QRUpload />} />
+        <Route path="/upload/:sessionId" element={<PhoneUpload />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
