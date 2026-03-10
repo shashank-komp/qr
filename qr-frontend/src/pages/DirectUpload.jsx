@@ -1,30 +1,16 @@
 import { useState } from "react";
-import { uploadDirect } from "../services/api";
 
 export default function DirectUpload() {
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!file) {
-      setMessage("Please select a file first.");
+      setMessage("Please select a file.");
       return;
     }
 
-    try {
-      setLoading(true);
-      setMessage("");
-
-      await uploadDirect(file);
-
-      setMessage("File uploaded successfully!");
-      setFile(null);
-    } catch (error) {
-      setMessage("Upload failed.");
-    } finally {
-      setLoading(false);
-    }
+    setMessage("Direct upload is not implemented in backend yet.");
   };
 
   return (
@@ -41,9 +27,8 @@ export default function DirectUpload() {
         <button
           className="btn btn-primary"
           onClick={handleUpload}
-          disabled={loading}
         >
-          {loading ? "Uploading..." : "Upload"}
+          Upload
         </button>
 
         {message && (

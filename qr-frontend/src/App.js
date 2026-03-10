@@ -11,6 +11,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/direct-upload" element={<DirectUpload />} />
         <Route path="/qr-upload" element={<QRUpload />} />
+
+        {/* Route used when phone scans QR */}
+        <Route path="/qr/mobile_upload/:sessionId" element={<PhoneUpload />} />
+
+        {/* Optional fallback route */}
         <Route path="/upload/:sessionId" element={<PhoneUpload />} />
       </Routes>
     </Router>

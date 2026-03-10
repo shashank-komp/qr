@@ -7,7 +7,7 @@ export default function PhoneUpload() {
 
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleUpload = async () => {
@@ -20,11 +20,15 @@ export default function PhoneUpload() {
       setLoading(true);
       setError("");
 
-      await uploadViaSession(sessionId, file);
+      const response = await uploadViaSession(sessionId, file);
+      setSuccessMessage(response.message);
 
-      setSuccess(true);
     } catch (err) {
-      setError("Upload failed. Please try again.");
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Upload failed.");
+      }
     } finally {
       setLoading(false);
     }
@@ -32,14 +36,13 @@ export default function PhoneUpload() {
 
   return (
     <div className="container vh-100 d-flex justify-content-center align-items-center">
-      <div className="card shadow p-4 text-center" style={{ width: "400px" }}>
-        
-        {!success ? (
-          <>
-            <h4 className="mb-3">Send File to PC</h4>
+      <div className="card shadow p-4 text-center" style={{ width: "420px" }}>
+        <h4 className="mb-4">Send File to PC</h4>
 
+        {!successMessage && (
+          <>
             <p className="text-muted mb-3">
-              Session ID: <strong>{sessionId}</strong>
+              Session: <strong>{sessionId}</strong>
             </p>
 
             <input
@@ -49,9 +52,7 @@ export default function PhoneUpload() {
             />
 
             {error && (
-              <div className="alert alert-danger py-2">
-                {error}
-              </div>
+              <div className="alert alert-danger py-2">{error}</div>
             )}
 
             <button
@@ -59,22 +60,17 @@ export default function PhoneUpload() {
               onClick={handleUpload}
               disabled={loading}
             >
-              {loading ? "Sending..." : "Send to PC"}
+              {loading ? "Uploading..." : "Send File"}
             </button>
-          </>
-        ) : (
-          <>
-            <div className="alert alert-success">
-              File Sent Successfully 🎉
-            </div>
-
-            <p className="text-muted">
-              You can now return to your PC.
-            </p>
-            
           </>
         )}
 
+        {successMessage && (
+          <>
+            <div className="alert alert-success">{successMessage}</div>
+            <p className="text-muted">You can now return to your PC.</p>
+          </>
+        )}
       </div>
     </div>
   );
