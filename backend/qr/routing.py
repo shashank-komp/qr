@@ -3,5 +3,5 @@ from . import consumers
 
 websocket_urlpatterns = [
     
-    re_path(r'ws/transfer/(?P<session_id>\w+)/$', consumers.FileTransferConsumer.as_asgi()),
+    re_path(r'ws/transfer/(?P<room_id>\w+)/$', consumers.FileTransferConsumer.as_asgi()),
 ]
