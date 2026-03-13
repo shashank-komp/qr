@@ -8,6 +8,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 # Create your views here.
 from django.core.cache import cache
+from PIL import Image
+import io
 
 @api_view(["GET"])
 def gen_qr(request):
@@ -15,17 +17,21 @@ def gen_qr(request):
     qr = get_qr(session_id)
 
     # from token get user id
-    user_id = 1
-    cache.set(f"qr_session_{session_id}", user_id, timeout=600) 
+    user_id = 
+    time=120
+    cache.set(f"qr_session_{session_id}", user_id, timeout=time) 
 
     return JsonResponse({
         "session_id": session_id,
-        "qr_code": qr
+        "qr_code": qr,
+        "expiry_time":time
+        
     })
 
 @api_view(["GET"])
-def ping(request):
-    return JsonResponse({"message": "Pong! Connection completely successful."})
+def check_user_validity(request, session_id):
+    is_valid=cache.get(f"qr_session_{session_id}")
+    return JsonResponse({"is_valid": is_valid})
 
 @api_view(["POST"])
 def mobile_upload(request, session_id):
@@ -35,19 +41,31 @@ def mobile_upload(request, session_id):
 
     user_id = cache.get(f"qr_session_{session_id}")
 
-    # missing check between acutal user id and id in cache
-
-
-
     
-    if not user_id:
+    if not user_id or user_id != request.data.get("user_id"):
         return JsonResponse({"error": "Invalid or expired QR code session"}, status=403)
 
     uploaded_file = request.FILES['file']
+    save_type=request.data.get("save_type")
+    try:
+        # img = Image.open(uploaded_file)
+        # output_buffer = io.BytesIO()
+        # if save_type == 'pdf' or save_type == 'jpeg':
+          
+        #     img = img.convert("RGB")
+        #     save_format = "PDF" if save_type == 'pdf' else "JPEG"
+        # else:
+        #     save_format = "PNG"
+        # img.save(output_buffer, format=save_format)
+        # output_buffer.seek(0)
 
-    file_instance = Files.objects.create(
+        # converted_file = ContentFile(
+        #     output_buffer.read(), 
+        #     name=f"{session_id}.{target_format}"
+        # )
+         file_instance = Files.objects.create(
         session_id=session_id,
-        file=uploaded_file,
+        file=converted_file,
         user_id=user_id 
     )
     full_file_url = request.build_absolute_uri(file_instance.file.url)
@@ -62,6 +80,14 @@ def mobile_upload(request, session_id):
         }
     )
     cache.delete(f"qr_session_{session_id}")
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+        
+
+
+   
 
     return JsonResponse({"message": "File sent to PC!","location":full_file_url})
 
