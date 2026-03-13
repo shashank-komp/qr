@@ -86,13 +86,15 @@ TEMPLATES = [
 ASGI_APPLICATION = 'qr_service.asgi.application'
 WSGI_APPLICATION = 'qr_service.wsgi.application'
  
+REDIS_URL = os.environ.get("VALKEY_URL", os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"))
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
                 {
-                    "address": os.environ.get("VALKEY_URL", "redis://127.0.0.1:6379"),
+                    "address": REDIS_URL,
                     "ssl_cert_reqs": None
                 }
             ],
@@ -102,7 +104,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.environ.get("VALKEY_CACHE_URL", "redis://127.0.0.1:6379/1"),
+        "LOCATION": os.environ.get("VALKEY_CACHE_URL", REDIS_URL),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
