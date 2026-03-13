@@ -23,6 +23,6 @@ urlpatterns = [
    
     path('generate_qr/', views.generate_qr),
     path('mobile_upload/<str:room_id>/', views.mobile_upload),
-    path('ping/', views.ping),
+  
 
 ]
