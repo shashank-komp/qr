@@ -62,6 +62,7 @@ def mobile_upload(request, room_id):
       
         cache.delete(f"qr_session_pc_{room_id}")
         cache.delete(f"qr_session_mobile_{room_id}")
+        cache.delete(f"qr_session_count_{room_id}")
         
         return JsonResponse({"message": "File sent to PC!"},status=200)
    

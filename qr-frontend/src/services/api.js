@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE = process.env.REACT_APP_API_URL;
 
 export const createSession = async () => {
-  const response = await axios.get(`${API_BASE}/gen_qr/`);
+  const response = await axios.get(`${API_BASE}/generate_qr/`);
   return response.data;
 };
 

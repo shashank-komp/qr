@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { connectSocket, joinSession, onFileUploaded } from "../services/socket";
+import { useState, useEffect } from "react";
+import { connectSocket, joinSession, onFileUploaded, closeSocket } from "../services/socket";
 import { createSession } from "../services/api";
 
 export default function QRUpload() {
   const [qrCode, setQrCode] = useState(null);
   const [sessionId, setSessionId] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [isExpired, setIsExpired] = useState(false);
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
 
@@ -12,11 +14,13 @@ export default function QRUpload() {
     try {
       const data = await createSession();
 
-      setSessionId(data.session_id);
+      setSessionId(data.room_id);
       setQrCode(data.qr_code);
+      setTimeLeft(30);
+      setIsExpired(false);
 
-      connectSocket(data.session_id);
-      joinSession(data.session_id);
+      connectSocket(data.room_id);
+      joinSession(data.room_id);
 
       onFileUploaded((file) => {
         setFiles((prev) => [...prev, file]);
@@ -28,12 +32,30 @@ export default function QRUpload() {
     }
   };
 
+  useEffect(() => {
+    if (!qrCode || isExpired) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setIsExpired(true);
+          closeSocket(); // Instantly wipe cache on backend
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [qrCode, isExpired]);
+
   return (
     <div style={{ textAlign: "center", marginTop: "40px" }}>
       <h2>QR Upload</h2>
 
       <button onClick={generateQR}>
-        Generate QR
+        {isExpired ? "Regenerate QR" : "Generate QR"}
       </button>
 
       {error && (
@@ -43,14 +65,29 @@ export default function QRUpload() {
       )}
 
       {qrCode && (
-        <div style={{ marginTop: "30px" }}>
+        <div style={{ marginTop: "30px", position: "relative", display: "inline-block" }}>
           <img
             src={`data:image/png;base64,${qrCode}`}
             alt="QR Code"
             width="300"
+            style={{
+              filter: isExpired ? "blur(10px)" : "none",
+              transition: "filter 0.5s ease-in-out"
+            }}
           />
+          {isExpired && (
+            <div style={{
+              position: "absolute", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)", color: "red",
+              fontWeight: "bold", backgroundColor: "rgba(255,255,255,0.9)",
+              padding: "10px 20px", borderRadius: "8px", border: "2px solid red"
+            }}>
+              QR Expired
+            </div>
+          )}
 
           <p>Session ID: {sessionId}</p>
+          {!isExpired && <p style={{ color: "blue", fontWeight: "bold", fontSize: "1.2rem" }}>Expires in: {timeLeft}s</p>}
         </div>
       )}
 

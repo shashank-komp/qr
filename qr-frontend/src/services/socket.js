@@ -47,3 +47,9 @@ export const joinSession = (sessionId) => {
 export const onFileUploaded = (callback) => {
   fileUploadedListener = callback;
 };
+
+export const closeSocket = () => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+  }
+};
