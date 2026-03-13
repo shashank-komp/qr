@@ -2,6 +2,8 @@ import uuid
 import qrcode
 import base64
 from io import BytesIO
+
+
 def generate_session_id():
     return uuid.uuid4().hex
 

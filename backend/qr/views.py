@@ -17,57 +17,53 @@ def gen_qr(request):
     qr = get_qr(session_id)
 
     # from token get user id
-    user_id = 
-    time=120
-    cache.set(f"qr_session_{session_id}", user_id, timeout=time) 
+    user_id = request.get('user_id')
+    time=30
+        
+ 
 
     return JsonResponse({
         "session_id": session_id,
         "qr_code": qr,
-        "expiry_time":time
-        
+        "expiry_time": time
     })
 
-@api_view(["GET"])
-def check_user_validity(request, session_id):
-    is_valid=cache.get(f"qr_session_{session_id}")
-    return JsonResponse({"is_valid": is_valid})
+# @api_view(["POST"])
+# def check_timer(request):
+#     is_expired=request.data.get("is_expired")
+#     session_id=request.data.get("session_id")
+#     if is_expired:
+#         cache.delete(f"qr_session_{session_id}")
+#         return JsonResponse({"message": "session deleted"},status=200)
+#     return JsonResponse({"message": "session not deleted"},status=500)
 
 @api_view(["POST"])
 def mobile_upload(request, session_id):
     if 'file' not in request.FILES:
         return JsonResponse({"error": "No file detected"}, status=400)
-        
 
-    user_id = cache.get(f"qr_session_{session_id}")
+        #validation
+    session_exists = cache.get(f"qr_session_mobile_{session_id}")
+    if not session_exists:
+        return JsonResponse({"error": "Invalid or expired QR code session (PC disconnected or timeout)"}, status=403)
 
     
-    if not user_id or user_id != request.data.get("user_id"):
-        return JsonResponse({"error": "Invalid or expired QR code session"}, status=403)
 
     uploaded_file = request.FILES['file']
-    save_type=request.data.get("save_type")
-    try:
-        # img = Image.open(uploaded_file)
-        # output_buffer = io.BytesIO()
-        # if save_type == 'pdf' or save_type == 'jpeg':
-          
-        #     img = img.convert("RGB")
-        #     save_format = "PDF" if save_type == 'pdf' else "JPEG"
-        # else:
-        #     save_format = "PNG"
-        # img.save(output_buffer, format=save_format)
-        # output_buffer.seek(0)
 
-        # converted_file = ContentFile(
-        #     output_buffer.read(), 
-        #     name=f"{session_id}.{target_format}"
-        # )
-         file_instance = Files.objects.create(
+    try:
+      
+
+        # BLOB MISSING 
+        #db check if for that session we have something
+        if(Files.objects.filter(session_id=session_id).exists()):
+            return JsonResponse({"error": "session already used"}, status=400)
+
+        file_instance = Files.objects.create(
         session_id=session_id,
-        file=converted_file,
+        file=uploaded_file,
         user_id=user_id 
-    )
+        )
     full_file_url = request.build_absolute_uri(file_instance.file.url)
     channel_layer = get_channel_layer() 
     async_to_sync(channel_layer.group_send)(
@@ -79,22 +75,15 @@ def mobile_upload(request, session_id):
             "file_name": uploaded_file.name
         }
     )
-    cache.delete(f"qr_session_{session_id}")
-
+      
+        # Delete sessions after successful upload (Single Use)
+        cache.delete(f"qr_session_pc_{session_id}")
+        cache.delete(f"qr_session_mobile_{session_id}")
+        
+        return JsonResponse({"message": "File sent to PC!", "location": full_file_url})
+   
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
-        
-
-
-   
-
-    return JsonResponse({"message": "File sent to PC!","location":full_file_url})
-
-    
-
-
-
 
 
 

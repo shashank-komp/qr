@@ -21,8 +21,9 @@ from . import views
 urlpatterns = [
    
    
-    path('gen_qr/',views.gen_qr),
-    path('mobile_upload/<str:session_id>/',views.mobile_upload),
+    path('gen_qr/', views.gen_qr),
+    path('mobile_upload/<str:session_id>/', views.mobile_upload),
+    path('check_timer/', views.check_timer),
     path('ping/', views.ping),
 
 ]
