@@ -18,9 +18,8 @@ def get_qr(session_id):
     qr.add_data(url)
     qr.make(fit=True)
 
-    # img=qr.make_image(fill_color="black",back_color="white")
-    # buffer = BytesIO()
-    # img.save(buffer, format="PNG")
-
+    img=qr.make_image(fill_color="black",back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')

@@ -15,7 +15,7 @@ def generate_qr(request):
     qr = get_qr(room_id)
 
     # from token get user id
-    user_id = request.get('user_id')
+    user_id = request.query_params.get('user_id')
     time=30
         
  
