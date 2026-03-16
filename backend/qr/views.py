@@ -15,9 +15,8 @@ def generate_qr(request):
     qr = get_qr(room_id)
 
     
-    # Combined session validity key
+    # Only initialize the count. The session is activated when the PC connects via WS.
     cache.set(f"qr_session_count_{room_id}", 0, timeout=30*60)
-    cache.set(f"qr_session_active_{room_id}", True, timeout=30*60)
 
  
     user_id = request.query_params.get('user_id')

@@ -30,6 +30,10 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         self.state = "accept"
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        
+        # Now that the group is joined, mark the session as active so the phone can upload
+        await cache.aset(f"qr_session_active_{self.room_id}", True, timeout=30*60)
+        
         print(f"[WebSocket ACCEPTED] Room: {self.room_id} | Session Secure.")
         
       
