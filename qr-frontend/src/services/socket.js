@@ -6,6 +6,11 @@ export const connectSocket = (sessionId, onReject) => {
   const wsBase = process.env.REACT_APP_WS_URL;
   const wsUrl = `${wsBase}/${sessionId}/`;
 
+  if (socket) {
+    console.log("Closing existing socket before connecting to new session...");
+    closeSocket();
+  }
+
   if (onReject) rejectListener = onReject;
 
   socket = new WebSocket(wsUrl);
@@ -40,7 +45,7 @@ export const connectSocket = (sessionId, onReject) => {
 
   socket.onclose = (event) => {
     console.log("WebSocket disconnected", event.code);
-    if (event.code === 4003 && rejectListener) {
+    if ((event.code === 4003 || event.code === 4004) && rejectListener) {
       rejectListener();
     }
   };
