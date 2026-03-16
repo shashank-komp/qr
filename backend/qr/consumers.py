@@ -9,7 +9,8 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f"transfer_{self.room_id}"
         
        
-        # The room is already initialized in views.py:generate_qr
+        # Safety: Ensure the key exists before incrementing to avoid ValueError crash
+        await cache.aadd(f"qr_session_count_{self.room_id}", 0, timeout=30*60)
         connection_count = await cache.aincr(f"qr_session_count_{self.room_id}")
 
         print(f"[WebSocket CONNECT] Room: {self.room_id} | Atomic Count: {connection_count}")

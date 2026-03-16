@@ -16,7 +16,7 @@ def generate_qr(request):
 
     
     # Only initialize the count. The session is activated when the PC connects via WS.
-    cache.set(f"qr_session_count_{room_id}", 0, timeout=30*60)
+    cache.add(f"qr_session_count_{room_id}", 0, timeout=30*60)
 
  
     user_id = request.query_params.get('user_id')
@@ -43,7 +43,7 @@ def mobile_upload(request, room_id):
 
     if not session_exists:
         print("[API /upload] REJECTED: Session not yet active or expired.")
-        return JsonResponse({"error": "PC is still connecting. Please wait 1-2 seconds and try again!"}, status=403)
+        return JsonResponse({"error": "PC is still connecting. Please wait 1-2 seconds and try again! Or"}, status=403)
         
     print("[API /upload] ACCEPTED: File is being processed...")
     user_id = 1
