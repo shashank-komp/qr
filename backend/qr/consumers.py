@@ -9,7 +9,7 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         self.room_group_name = f"transfer_{self.room_id}"
         
        
-        await cache.aadd(f"qr_session_count_{self.room_id}", 0, timeout=30*60)
+        # The room is already initialized in views.py:generate_qr
         connection_count = await cache.aincr(f"qr_session_count_{self.room_id}")
 
         print(f"[WebSocket CONNECT] Room: {self.room_id} | Atomic Count: {connection_count}")
@@ -32,9 +32,7 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         await self.accept()
         print(f"[WebSocket ACCEPTED] Room: {self.room_id} | Session Secure.")
         
-        # Ensure session validity keys are active
-        await cache.aset(f"qr_session_pc_{self.room_id}", True, timeout=30*60)
-        await cache.aset(f"qr_session_mobile_{self.room_id}", True, timeout=30*60)
+      
 
     async def disconnect(self, close_code):
         if getattr(self, "state", "") == "reject":
@@ -43,8 +41,7 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         print(f"[WebSocket DISCONNECT] Room: {self.room_id} | Code: {close_code} | Wiping session...")
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
      
-        await cache.adelete(f"qr_session_pc_{self.room_id}")
-        await cache.adelete(f"qr_session_mobile_{self.room_id}")
+        await cache.adelete(f"qr_session_active_{self.room_id}")
         await cache.adelete(f"qr_session_count_{self.room_id}")
         print(f"[WebSocket VIPED] Room: {self.room_id} | Session cleared.")
         

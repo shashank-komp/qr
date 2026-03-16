@@ -14,7 +14,12 @@ def generate_qr(request):
     room_id = generate_room_id()
     qr = get_qr(room_id)
 
-    # from token get user id
+    
+    # Combined session validity key
+    cache.set(f"qr_session_count_{room_id}", 0, timeout=30*60)
+    cache.set(f"qr_session_active_{room_id}", True, timeout=30*60)
+
+ 
     user_id = request.query_params.get('user_id')
     time=30
         
@@ -34,8 +39,8 @@ def mobile_upload(request, room_id):
         print("[API /upload] FAILED: No file attached.")
         return JsonResponse({"error": "No file detected"}, status=400)
 
-    session_exists = cache.get(f"qr_session_mobile_{room_id}")
-    print(f"[API /upload] Cache check 'qr_session_mobile_{room_id}': {session_exists}")
+    session_exists = cache.get(f"qr_session_active_{room_id}")
+    print(f"[API /upload] Cache check 'qr_session_active_{room_id}': {session_exists}")
 
     if not session_exists:
         print("[API /upload] REJECTED: Session missing or expired.")
@@ -64,7 +69,9 @@ def mobile_upload(request, room_id):
                 "file_name": uploaded_file.name
             }
         )
-      
+        cache.delete(f"qr_session_active_{room_id}")
+        cache.delete(f"qr_session_count_{room_id}")
+
         return JsonResponse({"message": "File sent to PC!"},status=200)
    
     except Exception as e:
