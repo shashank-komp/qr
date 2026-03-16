@@ -36,6 +36,12 @@ export const connectSocket = (sessionId, onReject) => {
         }
       }
 
+      // Proactive redirection on error messages
+      if ((data.code === 4003 || data.code === 4004) && rejectListener) {
+        console.log(`[WebSocket] Received error code ${data.code}, triggering rejection listener...`);
+        rejectListener();
+      }
+
     } catch (err) {
       console.error("Invalid WS message", err);
     }
