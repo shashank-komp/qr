@@ -11,7 +11,7 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         # Join the specific room for this session
         current_connection_count=cache.get(f"qr_session_count_{self.room_id}") or 0
 
-        if current_connection_count>2:
+        if current_connection_count>=2:
             self.state="reject"
             await self.close(code=4003)
             return 
