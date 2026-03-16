@@ -33,7 +33,7 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         print(f"[WebSocket ACCEPTED] Room: {self.room_id} | Session Secure.")
         
         # Ensure session validity keys are active
-        cache.set(f"qr_session_pc_{self.room_id}", True, timeout=30)
+        cache.set(f"qr_session_pc_{self.room_id}", True, timeout=30*60)
         cache.set(f"qr_session_mobile_{self.room_id}", True, timeout=30*60)
 
     async def disconnect(self, close_code):
@@ -43,10 +43,14 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         print(f"[WebSocket DISCONNECT] Room: {self.room_id} | Code: {close_code} | Wiping session...")
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
       
-        cache.delete(f"qr_session_pc_{self.room_id}")
-        cache.delete(f"qr_session_mobile_{self.room_id}")
-        cache.delete(f"qr_session_count_{self.room_id}")
-        print(f"[WebSocket VIPED] Room: {self.room_id} | All cache keys deleted.")
+        new_count = cache.decr(f"qr_session_count_{self.room_id}")
+        print(f"[WebSocket DECR] Room: {self.room_id} | New Count: {new_count}")
+
+        if new_count <= 0:
+            cache.delete(f"qr_session_pc_{self.room_id}")
+            cache.delete(f"qr_session_mobile_{self.room_id}")
+            cache.delete(f"qr_session_count_{self.room_id}")
+            print(f"[WebSocket VIPED] Room: {self.room_id} | Session cleared.")
         
 
     # This method is triggered when the mobile view sends a message
