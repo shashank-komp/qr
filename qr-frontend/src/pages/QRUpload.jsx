@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { connectSocket, joinSession, onFileUploaded } from "../services/socket";
+import { connectSocket, joinSession, onFileUploaded, onConnectionStatus } from "../services/socket";
 import { createSession } from "../services/api";
 
 export default function QRUpload() {
@@ -9,6 +9,7 @@ export default function QRUpload() {
   const [isExpired, setIsExpired] = useState(false);
   const [files, setFiles] = useState([]);
   const [error, setError] = useState(null);
+  const [mobileConnected, setMobileConnected] = useState(false);
 
   const generateQR = async () => {
     try {
@@ -18,12 +19,19 @@ export default function QRUpload() {
       setQrCode(data.qr_code);
       setTimeLeft(30);
       setIsExpired(false);
+      setMobileConnected(false); // Reset on new session
 
       connectSocket(data.room_id);
       joinSession(data.room_id);
 
       onFileUploaded((file) => {
         setFiles((prev) => [...prev, file]);
+      });
+
+      onConnectionStatus((status) => {
+        if (status === "mobile_connected") {
+          setMobileConnected(true);
+        }
       });
 
       setError(null);
@@ -65,7 +73,7 @@ export default function QRUpload() {
         </p>
       )}
 
-      {qrCode && (
+      {qrCode && !mobileConnected && (
         <div style={{ marginTop: "30px", position: "relative", display: "inline-block" }}>
           <img
             src={`data:image/png;base64,${qrCode}`}
@@ -89,6 +97,14 @@ export default function QRUpload() {
 
           <p>Session ID: {sessionId}</p>
           {!isExpired && <p style={{ color: "blue", fontWeight: "bold", fontSize: "1.2rem" }}>Expires in: {timeLeft}s</p>}
+        </div>
+      )}
+
+      {mobileConnected && (
+        <div style={{ marginTop: "30px", padding: "20px", border: "2px solid green", borderRadius: "10px", backgroundColor: "#e6ffe6", display: "inline-block" }}>
+          <h3 style={{ color: "green" }}>✅ Phone Connected!</h3>
+          <p>You can now upload files from your phone.</p>
+          <p className="text-muted">Wait for files to appear below...</p>
         </div>
       )}
 

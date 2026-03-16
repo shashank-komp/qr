@@ -15,7 +15,7 @@ def generate_qr(request):
     qr = get_qr(room_id)
 
     
-    # Only initialize the count. The session is activated when the PC connects via WS.
+   
     cache.add(f"qr_session_count_{room_id}", 0, timeout=30*60)
 
  
@@ -33,19 +33,23 @@ def generate_qr(request):
 
 @api_view(["POST"])
 def mobile_upload(request, room_id):
-    print(f"\n[API /upload] Attempting upload to Room: {room_id}")
+ 
     if 'file' not in request.FILES:
-        print("[API /upload] FAILED: No file attached.")
+      
         return JsonResponse({"error": "No file detected"}, status=400)
 
-    session_exists = cache.get(f"qr_session_active_{room_id}")
-    print(f"[API /upload] Cache check 'qr_session_active_{room_id}': {session_exists}")
+    session_active = cache.get(f"qr_session_active_{room_id}")
+    room_exists = cache.get(f"qr_session_count_{room_id}")
 
-    if not session_exists:
-        print("[API /upload] REJECTED: Session not yet active or expired.")
-        return JsonResponse({"error": "PC is still connecting. Please wait 1-2 seconds and try again! Or"}, status=403)
+    if not session_active:
+        if room_exists is not None:
         
-    print("[API /upload] ACCEPTED: File is being processed...")
+            return JsonResponse({"error": "PC is still connecting. Retrying..."}, status=403)
+        else:
+           
+            return JsonResponse({"error": "QR code has expired or is invalid."}, status=410)
+        
+   
     user_id = 1
     uploaded_file = request.FILES['file']
     try:

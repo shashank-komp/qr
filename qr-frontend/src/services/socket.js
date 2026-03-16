@@ -1,6 +1,7 @@
 let socket = null;
 let fileUploadedListener = null;
 let rejectListener = null;
+let connectionStatusListener = null;
 
 export const connectSocket = (sessionId, onReject) => {
   const wsBase = process.env.REACT_APP_WS_URL;
@@ -42,6 +43,12 @@ export const connectSocket = (sessionId, onReject) => {
         rejectListener();
       }
 
+      // Handle connection status updates (e.g., "phone joined")
+      if (data.type === "CONNECTION_STATUS" && connectionStatusListener) {
+        console.log("[WebSocket] Connection status update:", data.status);
+        connectionStatusListener(data.status);
+      }
+
     } catch (err) {
       console.error("Invalid WS message", err);
     }
@@ -65,6 +72,10 @@ export const joinSession = (sessionId) => {
 
 export const onFileUploaded = (callback) => {
   fileUploadedListener = callback;
+};
+
+export const onConnectionStatus = (callback) => {
+  connectionStatusListener = callback;
 };
 
 export const closeSocket = () => {
