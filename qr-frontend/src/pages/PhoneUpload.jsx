@@ -26,7 +26,7 @@ export default function PhoneUpload() {
     };
   }, [sessionId, navigate]);
 
-  const handleUpload = async () => {
+  const handleUpload = async (isRetry = false) => {
     if (!file) {
       setError("Please select a file.");
       return;
@@ -38,14 +38,23 @@ export default function PhoneUpload() {
 
       const response = await uploadViaSession(sessionId, file);
       setSuccessMessage(response.message);
+      setLoading(false);
 
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error);
-      } else {
-        setError("Upload failed.");
+      const errorMsg = err.response?.data?.error || "Upload failed.";
+      const statusCode = err.response?.status;
+
+      // Auto-retry once if it's the cold-start race condition (403 Forbidden)
+      if (statusCode === 403 && !isRetry) {
+        console.log("[PhoneUpload] PC not ready (403). Retrying in 1.5s...");
+        setError("Establishing connection with PC...");
+        setTimeout(() => {
+          handleUpload(true);
+        }, 1500);
+        return;
       }
-    } finally {
+
+      setError(errorMsg);
       setLoading(false);
     }
   };

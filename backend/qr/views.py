@@ -42,8 +42,8 @@ def mobile_upload(request, room_id):
     print(f"[API /upload] Cache check 'qr_session_active_{room_id}': {session_exists}")
 
     if not session_exists:
-        print("[API /upload] REJECTED: Session missing or expired.")
-        return JsonResponse({"error": "Invalid or expired QR code session (PC disconnected or timeout)"}, status=403)
+        print("[API /upload] REJECTED: Session not yet active or expired.")
+        return JsonResponse({"error": "PC is still connecting. Please wait 1-2 seconds and try again!"}, status=403)
         
     print("[API /upload] ACCEPTED: File is being processed...")
     user_id = 1
