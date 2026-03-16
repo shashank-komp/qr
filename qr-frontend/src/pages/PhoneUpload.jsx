@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { uploadViaSession } from "../services/api";
+import { connectSocket, closeSocket } from "../services/socket";
 
 export default function PhoneUpload() {
   const { sessionId } = useParams();
@@ -9,6 +10,16 @@ export default function PhoneUpload() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
+  const [roomFull, setRoomFull] = useState(false);
+
+  useEffect(() => {
+    // Establish connection immediately to claim a slot in the room
+    connectSocket(sessionId, () => setRoomFull(true));
+
+    return () => {
+      closeSocket();
+    };
+  }, [sessionId]);
 
   const handleUpload = async () => {
     if (!file) {
@@ -33,6 +44,18 @@ export default function PhoneUpload() {
       setLoading(false);
     }
   };
+
+  if (roomFull) {
+    return (
+      <div className="container vh-100 d-flex justify-content-center align-items-center">
+        <div className="card shadow p-4 text-center" style={{ width: "420px", borderColor: "red" }}>
+          <h4 className="text-danger mb-3">Room Full</h4>
+          <p className="text-muted">Two devices are already connected to this session. Please request a new QR code from the PC.</p>
+          <button className="btn btn-outline-danger w-100" onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container vh-100 d-flex justify-content-center align-items-center">

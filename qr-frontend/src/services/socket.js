@@ -1,9 +1,12 @@
 let socket = null;
 let fileUploadedListener = null;
+let rejectListener = null;
 
-export const connectSocket = (sessionId) => {
+export const connectSocket = (sessionId, onReject) => {
   const wsBase = process.env.REACT_APP_WS_URL;
   const wsUrl = `${wsBase}/${sessionId}/`;
+
+  if (onReject) rejectListener = onReject;
 
   socket = new WebSocket(wsUrl);
 
@@ -35,8 +38,11 @@ export const connectSocket = (sessionId) => {
     console.error("WebSocket error:", error);
   };
 
-  socket.onclose = () => {
-    console.log("WebSocket disconnected");
+  socket.onclose = (event) => {
+    console.log("WebSocket disconnected", event.code);
+    if (event.code === 4003 && rejectListener) {
+      rejectListener();
+    }
   };
 };
 
