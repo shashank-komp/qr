@@ -42,19 +42,16 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         
         print(f"[WebSocket DISCONNECT] Room: {self.room_id} | Code: {close_code} | Wiping session...")
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-      
-        new_count = cache.decr(f"qr_session_count_{self.room_id}")
-        print(f"[WebSocket DECR] Room: {self.room_id} | New Count: {new_count}")
-
-        if new_count <= 0:
-            cache.delete(f"qr_session_pc_{self.room_id}")
-            cache.delete(f"qr_session_mobile_{self.room_id}")
-            cache.delete(f"qr_session_count_{self.room_id}")
-            print(f"[WebSocket VIPED] Room: {self.room_id} | Session cleared.")
+     
+        cache.delete(f"qr_session_pc_{self.room_id}")
+        cache.delete(f"qr_session_mobile_{self.room_id}")
+        cache.delete(f"qr_session_count_{self.room_id}")
+        print(f"[WebSocket VIPED] Room: {self.room_id} | Session cleared.")
         
 
     # This method is triggered when the mobile view sends a message
     async def send_file_notification(self, event):
+        print(f"[WebSocket NOTIFY] Room: {self.room_id} | Sending file: {event.get('file_name')} to PC...")
         # Send data to the PC browser
         await self.send(text_data=json.dumps({
             "status": event["status"],
@@ -62,3 +59,4 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
             "file_name": event.get("file_name", "Unknown"),
             "message": "File received successfully!"
         }))
+        print(f"[WebSocket SENT] Room: {self.room_id} | Message transmitted successfully.")

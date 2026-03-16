@@ -22,12 +22,14 @@ export const connectSocket = (sessionId, onReject) => {
   socket.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
+      console.log("[WebSocket MESSAGE] Received:", data);
 
       if (data.status === "uploaded") {
         const file = {
           fileName: data.file_name,
           location: data.file_url
         };
+        console.log("[WebSocket] File notification valid, triggering listener...");
 
         if (fileUploadedListener) {
           fileUploadedListener(file);
