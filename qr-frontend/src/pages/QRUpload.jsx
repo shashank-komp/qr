@@ -38,9 +38,10 @@ export default function QRUpload() {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          console.log("[QRUpload] Timer hit 0! Blurring QR code, but keeping WebSocket connection ACTIVE.");
           clearInterval(timer);
           setIsExpired(true);
-          closeSocket(); // Instantly wipe cache on backend
+          // Removed closeSocket() so the session stays active on the backend!
           return 0;
         }
         return prev - 1;

@@ -29,19 +29,24 @@ def generate_qr(request):
 
 @api_view(["POST"])
 def mobile_upload(request, room_id):
+    print(f"\n[API /upload] Attempting upload to Room: {room_id}")
     if 'file' not in request.FILES:
+        print("[API /upload] FAILED: No file attached.")
         return JsonResponse({"error": "No file detected"}, status=400)
 
-    
     session_exists = cache.get(f"qr_session_mobile_{room_id}")
+    print(f"[API /upload] Cache check 'qr_session_mobile_{room_id}': {session_exists}")
+
     if not session_exists:
+        print("[API /upload] REJECTED: Session missing or expired.")
         return JsonResponse({"error": "Invalid or expired QR code session (PC disconnected or timeout)"}, status=403)
         
+    print("[API /upload] ACCEPTED: File is being processed...")
     user_id = 1
     uploaded_file = request.FILES['file']
     try:
         #blob missing
-
+        
         file_instance = Files.objects.create(
             session_id=room_id,
             file=uploaded_file,

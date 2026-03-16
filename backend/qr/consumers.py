@@ -8,21 +8,29 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f"transfer_{self.room_id}"
         
-        # Join the specific room for this session
-        current_connection_count=cache.get(f"qr_session_count_{self.room_id}") or 0
-
-        if current_connection_count>=2:
-            self.state="reject"
-            await self.close(code=4003)
-            return 
-
-        # 2. Atomic increment (Ensure key exists first)
+       
         cache.add(f"qr_session_count_{self.room_id}", 0, timeout=30*60)
-        new_connection_count = cache.incr(f"qr_session_count_{self.room_id}")
-        
+        connection_count = cache.incr(f"qr_session_count_{self.room_id}")
+
+        print(f"[WebSocket CONNECT] Room: {self.room_id} | Atomic Count: {connection_count}")
+
+        if connection_count > 2:
+            print(f"[WebSocket REJECTED] Room: {self.room_id} is full (Count: {connection_count})")
+            self.state = "reject"
+            cache.decr(f"qr_session_count_{self.room_id}")
+            await self.accept()
+            # Send a clear message so the user sees WHY it closed in Postman
+            await self.send(text_data=json.dumps({
+                "error": "Room Full",
+                "code": 4003
+            }))
+            await self.close(code=4003)
+            return
+
         self.state = "accept"
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        print(f"[WebSocket ACCEPTED] Room: {self.room_id} | Session Secure.")
         
         # Ensure session validity keys are active
         cache.set(f"qr_session_pc_{self.room_id}", True, timeout=30)
@@ -32,11 +40,13 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
         if getattr(self, "state", "") == "reject":
             return
         
+        print(f"[WebSocket DISCONNECT] Room: {self.room_id} | Code: {close_code} | Wiping session...")
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
       
         cache.delete(f"qr_session_pc_{self.room_id}")
         cache.delete(f"qr_session_mobile_{self.room_id}")
         cache.delete(f"qr_session_count_{self.room_id}")
+        print(f"[WebSocket VIPED] Room: {self.room_id} | All cache keys deleted.")
         
 
     # This method is triggered when the mobile view sends a message
