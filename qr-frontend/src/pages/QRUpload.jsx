@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { connectSocket, joinSession, onFileUploaded, closeSocket } from "../services/socket";
+import { connectSocket, joinSession, onFileUploaded } from "../services/socket";
 import { createSession } from "../services/api";
 
 export default function QRUpload() {
