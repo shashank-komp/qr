@@ -7,7 +7,10 @@ from .models import Files
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.core.cache import cache
-
+from drf_spectacular.utils import extend_schema, OpenApiTypes
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.http import JsonResponse
 
 @api_view(["GET"])
 def generate_qr(request):
@@ -19,7 +22,7 @@ def generate_qr(request):
     cache.add(f"qr_session_count_{room_id}", 0, timeout=30*60)
 
  
-    user_id = request.query_params.get('user_id')
+    user_id = 1
     time=30
         
  
@@ -30,8 +33,31 @@ def generate_qr(request):
         "expiry_time": time
     })
 
-
+@extend_schema(
+    summary="Upload file from mobile via QR session",
+    description="Uploads a file and notifies the PC client via WebSockets.",
+    request={
+        'multipart/form-data': {
+            'type': 'object',
+            'properties': {
+                'file': {
+                    'type': 'string',
+                    'format': 'binary',
+                    'description': 'The file to be transferred'
+                }
+            }
+        }
+    },
+    responses={
+        200: OpenApiTypes.OBJECT,
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+        410: OpenApiTypes.OBJECT,
+        500: OpenApiTypes.OBJECT,
+    }
+)
 @api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
 def mobile_upload(request, room_id):
  
     if 'file' not in request.FILES:

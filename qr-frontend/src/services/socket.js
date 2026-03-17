@@ -40,7 +40,7 @@ export const connectSocket = (sessionId, onReject) => {
       // Proactive redirection on error messages
       if ((data.code === 4003 || data.code === 4004) && rejectListener) {
         console.log(`[WebSocket] Received error code ${data.code}, triggering rejection listener...`);
-        rejectListener();
+        rejectListener(data.code);
       }
 
       // Handle connection status updates (e.g., "phone joined")
@@ -61,7 +61,7 @@ export const connectSocket = (sessionId, onReject) => {
   socket.onclose = (event) => {
     console.log("WebSocket disconnected", event.code);
     if ((event.code === 4003 || event.code === 4004) && rejectListener) {
-      rejectListener();
+      rejectListener(event.code);
     }
   };
 };

@@ -15,9 +15,13 @@ export default function PhoneUpload() {
   useEffect(() => {
     console.log(`[PhoneUpload] Mounting. Attempting to connect WebSocket to session: ${sessionId}`);
     // Establish connection immediately to claim a slot in the room
-    connectSocket(sessionId, () => {
-      console.log(`[PhoneUpload] Received Room Full (4003) rejection! Redirecting to /room-full`);
-      navigate("/room-full");
+    connectSocket(sessionId, (code) => {
+      console.log(`[PhoneUpload] Received rejection code: ${code}`);
+      if (code === 4003) {
+        navigate("/room-full");
+      } else if (code === 4004) {
+        navigate("/room-expired");
+      }
     });
 
     return () => {
@@ -51,6 +55,12 @@ export default function PhoneUpload() {
         setTimeout(() => {
           handleUpload(true);
         }, 1500);
+        return;
+      }
+
+      if (statusCode === 410) {
+        console.log("[PhoneUpload] Room expired (410). Redirecting to /room-expired");
+        navigate("/room-expired");
         return;
       }
 

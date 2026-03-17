@@ -43,8 +43,9 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 INSTALLED_APPS = [
     'daphne',
     'channels',
-    'corsheaders',
+    'corsheaders',  
     'rest_framework',
+    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,7 +54,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'qr'
 ]
- 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'QR Service API',
+    'VERSION': '1.0.0',
+    'DESCRIPTION': 'QR Service API',
+    
+}
 MIDDLEWARE = [
      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',

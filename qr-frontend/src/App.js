@@ -4,6 +4,7 @@ import DirectUpload from "./pages/DirectUpload";
 import QRUpload from "./pages/QRUpload";
 import PhoneUpload from "./pages/PhoneUpload";
 import RoomFull from "./pages/RoomFull";
+import RoomExpired from "./pages/RoomExpired";
 
 function App() {
   return (
@@ -16,8 +17,9 @@ function App() {
         {/* Route used when phone scans QR */}
         <Route path="/qr/mobile_upload/:sessionId" element={<PhoneUpload />} />
 
-        {/* Redirect route when room is full */}
+        {/* Redirect routes for errors */}
         <Route path="/room-full" element={<RoomFull />} />
+        <Route path="/room-expired" element={<RoomExpired />} />
 
         {/* Optional fallback route */}
         <Route path="/upload/:sessionId" element={<PhoneUpload />} />

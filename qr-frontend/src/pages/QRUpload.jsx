@@ -21,7 +21,14 @@ export default function QRUpload() {
       setIsExpired(false);
       setMobileConnected(false); // Reset on new session
 
-      connectSocket(data.room_id);
+      connectSocket(data.room_id, (code) => {
+        if (code === 4004) {
+          setError("This session has expired. Please generate a new one.");
+          setQrCode(null);
+        } else if (code === 4003) {
+          setError("Room is full. Please try again later.");
+        }
+      });
       joinSession(data.room_id);
 
       onFileUploaded((file) => {
