@@ -15,8 +15,9 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
             self.state = "reject"
             await self.accept()
             await self.send(text_data=json.dumps({
-                "error": "Invalid or expired QR code",
-                "code": 4004
+                "type": "INVALID_QR_STATUS",
+                "status": "error",
+                "message": "Invalid QR"
             }))
             await self.close(code=4004)
             return
@@ -28,8 +29,9 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
             await cache.adecr(f"qr_session_count_{self.room_id}")
             await self.accept()
             await self.send(text_data=json.dumps({
-                "error": "Room Full",
-                "code": 4003
+                "type": "ROOM_FULL_STATUS",
+                "status": "error",
+                "message": "QR has already been scanned"
             }))
             await self.close(code=4003)
             return
@@ -74,9 +76,9 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
             "file_name": event.get("file_name", "Unknown"),
             "message": "File received successfully!"
         }))
-        print(f"[WebSocket SENT] Room: {self.room_id} | Message transmitted successfully.")
+       
 
-    # This handles the 'user_joined_msg' event sent via group_send
+    
     async def user_joined_msg(self, event):
         await self.send(text_data=json.dumps({
             "type": "CONNECTION_STATUS",

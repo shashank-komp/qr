@@ -33,31 +33,31 @@ def generate_qr(request):
         "expiry_time": time
     })
 
-@extend_schema(
-    summary="Upload file from mobile via QR session",
-    description="Uploads a file and notifies the PC client via WebSockets.",
-    request={
-        'multipart/form-data': {
-            'type': 'object',
-            'properties': {
-                'file': {
-                    'type': 'string',
-                    'format': 'binary',
-                    'description': 'The file to be transferred'
-                }
-            }
-        }
-    },
-    responses={
-        200: OpenApiTypes.OBJECT,
-        400: OpenApiTypes.OBJECT,
-        403: OpenApiTypes.OBJECT,
-        410: OpenApiTypes.OBJECT,
-        500: OpenApiTypes.OBJECT,
-    }
-)
+# @extend_schema(
+#     summary="Upload file from mobile via QR session",
+#     description="Uploads a file and notifies the PC client via WebSockets.",
+#     request={
+#         'multipart/form-data': {
+#             'type': 'object',
+#             'properties': {
+#                 'file': {
+#                     'type': 'string',
+#                     'format': 'binary',
+#                     'description': 'The file to be transferred'
+#                 }
+#             }
+#         }
+#     },
+#     responses={
+#         200: OpenApiTypes.OBJECT,
+#         400: OpenApiTypes.OBJECT,
+#         403: OpenApiTypes.OBJECT,
+#         410: OpenApiTypes.OBJECT,
+#         500: OpenApiTypes.OBJECT,
+#     }
+# )
 @api_view(["POST"])
-@parser_classes([MultiPartParser, FormParser])
+# @parser_classes([MultiPartParser, FormParser])
 def mobile_upload(request, room_id):
  
     if 'file' not in request.FILES:
@@ -75,12 +75,14 @@ def mobile_upload(request, room_id):
            
             return JsonResponse({"error": "QR code has expired or is invalid."}, status=410)
         
-   
+    #from token
     user_id = 1
+
     uploaded_file = request.FILES['file']
     try:
         #blob missing
-        
+        # also add db validation
+
         file_instance = Files.objects.create(
             session_id=room_id,
             file=uploaded_file,
@@ -95,7 +97,8 @@ def mobile_upload(request, room_id):
                 "type": "send_file_notification",
                 "status": "uploaded",
                 "file_url": full_file_url,
-                "file_name": uploaded_file.name
+                "file_name": uploaded_file.name,
+                "method":"mobile"
             }
         )
         cache.delete(f"qr_session_active_{room_id}")
