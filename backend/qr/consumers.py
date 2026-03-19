@@ -74,7 +74,8 @@ class FileTransferConsumer(AsyncWebsocketConsumer):
             "status": event["status"],
             "file_url": event["file_url"],
             "file_name": event.get("file_name", "Unknown"),
-            "message": "File received successfully!"
+            "message": "File received successfully!",
+            "method":event["method"]
         }))
        
 
