@@ -60,9 +60,7 @@ def generate_qr(request):
 # @parser_classes([MultiPartParser, FormParser])
 def mobile_upload(request, room_id):
  
-    if 'file' not in request.FILES:
-      
-        return JsonResponse({"error": "No file detected"}, status=400)
+   
 
     session_active = cache.get(f"qr_session_active_{room_id}")
     room_exists = cache.get(f"qr_session_count_{room_id}")
@@ -74,11 +72,15 @@ def mobile_upload(request, room_id):
         else:
            
             return JsonResponse({"error": "QR code has expired or is invalid."}, status=410)
+    uploaded_file = request.FILES.get('file')
+
+    if uploaded_file is None:
+      
+        return JsonResponse({"error": "No file detected"}, status=400)
         
     #from token
     user_id = 1
 
-    uploaded_file = request.FILES['file']
     try:
         #blob missing
         # also add db validation
