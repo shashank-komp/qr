@@ -37,10 +37,14 @@ export const connectSocket = (sessionId, onReject) => {
         }
       }
 
-      // Proactive redirection on error messages
-      if ((data.code === 4003 || data.code === 4004) && rejectListener) {
-        console.log(`[WebSocket] Received error code ${data.code}, triggering rejection listener...`);
-        rejectListener(data.code);
+      // Proactive redirection on error messages (check type, not code)
+      if (data.type === "ROOM_FULL_STATUS" && rejectListener) {
+        console.log(`[WebSocket] Room is full, triggering rejection listener...`);
+        rejectListener(4003);
+      }
+      if (data.type === "INVALID_QR_STATUS" && rejectListener) {
+        console.log(`[WebSocket] Invalid/expired QR, triggering rejection listener...`);
+        rejectListener(4004);
       }
 
       // Handle connection status updates (e.g., "phone joined")
