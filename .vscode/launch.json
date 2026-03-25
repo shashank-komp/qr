@@ -5,16 +5,17 @@
             "name": "Django: Runserver",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/backend/manage.py",
+            "program": "${workspaceFolder}/manage.py",
             "args": [
                 "runserver",
                 "0.0.0.0:8000"
             ],
             "django": true,
             "cwd": "${workspaceFolder}",
-            "envFile": "${workspaceFolder}/backend/.env",
+            "envFile": "${workspaceFolder}/.env.local",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+           
         }
     ]
 }

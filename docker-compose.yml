@@ -1,0 +1,124 @@
+services:
+  db:
+    image: postgres:15.8
+    environment:
+      POSTGRES_DB: qr_service
+      POSTGRES_USER: qr_user
+      POSTGRES_PASSWORD: qr_password
+    ports:
+      - "${DB_PORT:-5435}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qr_user -d qr_service"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - app_network
+ 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app_network
+ 
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qr_service:v1.0.0
+    command: ["web"]
+    deploy:
+      replicas: 1
+    env_file:
+      - .env.dev
+    ports:
+      - "${WEB_PORT:-9001}:9000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app_network
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qr_service:v1.0.0
+    command: ["celery-worker"]
+    deploy:
+      replicas: 1
+    env_file:
+      - .env.dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app_network
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qr_service:v1.0.0
+    command: ["celery-beat"]
+    deploy:
+      replicas: 1
+    env_file:
+      - .env.dev
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - CELERY_BEAT_REPLICA_WARNING=true
+    volumes:
+      - celery_beat:/tmp
+    restart: unless-stopped
+    networks:
+      - app_network
+ 
+  celery-flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qr_service:v1.0.0
+    command: ["celery-flower"]
+    deploy:
+      replicas: 0
+    env_file:
+      - .env.dev
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "${FLOWER_PORT:-5555}:5555"
+    restart: unless-stopped
+    networks:
+      - app_network
+ 
+volumes:
+  pgdata:
+    driver: local
+  redis_data:
+    driver: local
+  celery_beat:
+    driver: local
+ 
+networks:
+  app_network:
+    driver: bridge
+ 
