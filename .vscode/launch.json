@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: Runserver",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8000"
+            ],
+            "django": true,
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/backend/.env",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}
